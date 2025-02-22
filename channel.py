@@ -113,7 +113,9 @@ def send_message():
     if not 'extra' in message:
         extra = None
     else:
-        extra = message['extra']
+        # adds a keyword to the extra field to generate an affirmation on the client end
+        extra = "affirmation"
+        
     # add message to messages
     messages = read_messages()
 
@@ -161,8 +163,6 @@ def filter_message(message):
     if profanity.contains_profanity(message['sender']):
         message['sender'] = profanity.censor(message['sender'])
         censored = True
-    # adds a keyword to the extra field to generate an affirmation on the client end
-    message['extra'] = "affirmation"
 
     return message, censored
             
