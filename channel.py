@@ -10,6 +10,7 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 from flask_cors import CORS
 import random
+import traceback
 
 # Initialize the sentiment analyzer
 nltk.download('vader_lexicon')
@@ -41,6 +42,11 @@ INITIAL_MESSAGE = {
     "timestamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
     "extra": None
 }
+
+
+@app.errorhandler(500)
+def internal_error(exception):
+   return "<pre>"+traceback.format_exc()+"</pre>"
 
 
 @app.cli.command('register')
