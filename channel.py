@@ -233,5 +233,5 @@ def save_messages(messages):
 # run flask --app channel.py register
 # to register channel with hub
 
-# if __name__ == '__main__':
-#     app.run(port=5001, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
