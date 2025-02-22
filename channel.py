@@ -40,7 +40,7 @@ INITIAL_MESSAGE = {
     "content": "Welcome to Daily Gratitude! Share something positive today. 😊",
     "sender": "Daily Gratitude Team ✨",
     "timestamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
-    "extra": None
+    "extra": "affirmation"
 }
 
 
@@ -113,9 +113,7 @@ def send_message():
     if not 'extra' in message:
         extra = None
     else:
-        # adds a keyword to the extra field to generate an affirmation on the client end
-        extra = "affirmation"
-        
+        extra = message['extra']
     # add message to messages
     messages = read_messages()
 
@@ -163,6 +161,8 @@ def filter_message(message):
     if profanity.contains_profanity(message['sender']):
         message['sender'] = profanity.censor(message['sender'])
         censored = True
+    # adds a keyword to the extra field to generate an affirmation on the client end
+    message['extra'] = "affirmation"
 
     return message, censored
             
