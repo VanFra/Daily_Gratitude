@@ -165,8 +165,9 @@
             const [sender, setSender] = React.useState([]);
             const [newSender, setNewSender] = React.useState("");
 
-            const [affirmation, setAffirmation] = React.useState(""); // Store the generated affirmation
+            const [affirmation, setAffirmation] = React.useState(""); 
             
+            // generates an affirmation from the affirmation API
             function generateAffirmation() {
                 const randomQuery = `?nocache=${new Date().getTime()}`;
                 fetch(`https://api.allorigins.win/get?url=https://www.affirmations.dev/${randomQuery}`)
@@ -297,7 +298,6 @@
             );
         }
 
-    // #region main function
         // Function that shows the channels and calls the chat component when a channel is selected
         function Show() {
             const [selectedChannel, setSelectedChannel] = React.useState(null);
