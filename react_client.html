@@ -12,6 +12,7 @@
         body {
         display: flex;
         flex-direction: column;
+        justify-content: center;
         font-family: Verdana, Geneva, Tahoma, sans-serif;
         }
 
@@ -25,7 +26,7 @@
 
         /* Input Fields */
         .input-field {
-            width: 20%;
+            width: 100%;
             font-size: 14px;
             padding: 10px;
             margin: 5px 0;
@@ -49,7 +50,7 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            width: 20%;
+            /* width: 20%; */
         }
 
         h1 {
@@ -59,6 +60,50 @@
             text-align: center;
         }
 
+        /* Channel List Container */
+        .channel-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+            padding: 10px;
+        }
+
+        /* Channel Item */
+        .channel-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        /* Styling for Channel Links */
+        .channel-link {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            background-color: #0D8ABC;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover Effect for Channel Links */
+        .channel-link:hover {
+            background-color: #067A99;
+        }
+
+        /* Channel Type Label */
+        .channel-type {
+            font-size: 12px;
+            color: #ccc;
+            font-weight: normal;
+        }
 
     </style>
 
@@ -90,24 +135,28 @@
             }, []);
 
             return (
-                <div>
-                    <h1>Channel List</h1>
-                    <ul>
-                        {channels.map(channel => (
-                            <div key={channel.id}>
-                                <a href="#" onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    onSelect(channel);
-                                }}>
-                                    {channel.name} (Type: {channel.type_of_service})
-                                </a>
-                            </div>
-                        ))}
-
-                    </ul>
-                </div>
-            );
-        }
+        <div className="channel-list-container">
+            <h1>Channel List</h1>
+            <div>
+                {channels.map(channel => (
+                    <div key={channel.id} className="channel-item">
+                        <a
+                            href="#"
+                            onClick={(e) => { 
+                                e.preventDefault(); 
+                                onSelect(channel);
+                            }}
+                            className="channel-link"
+                        >
+                            {channel.name}
+                            <span className="channel-type">({channel.type_of_service})</span>
+                        </a>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 
         function Chat({ channel, onBack }) {
@@ -119,17 +168,15 @@
             const [affirmation, setAffirmation] = React.useState(""); // Store the generated affirmation
             
             function generateAffirmation() {
-                fetch("https://api.allorigins.win/get?url=https://www.affirmations.dev/")
-                    .then(response => response.json())
-                    .then(data => {
-                        const parsedData = JSON.parse(data.contents);
-                        console.log("Generated Affirmation: ", parsedData.affirmation);
-                        
-                        // Force state update with a new state value
-                        setAffirmation(parsedData.affirmation);
+                const randomQuery = `?nocache=${new Date().getTime()}`;
+                fetch(`https://api.allorigins.win/get?url=https://www.affirmations.dev/${randomQuery}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                    const parsedData = JSON.parse(data.contents);
+                    setAffirmation(parsedData.affirmation);
                     })
-                    .catch(error => console.error("Error fetching affirmation:", error));
-            }
+                    .catch((error) => console.error("Error fetching affirmation:", error));
+                }
 
             // fetch messages from the channel
             React.useEffect(() => {
@@ -172,7 +219,7 @@
             }
 
             return (
-                <div>
+                <div style={{alignItems: "center", marginLeft: "75px" }}>
                     <button className="button" style={{height:"26px", fontSize:"12px"}} onClick={onBack}>⬅ Back to Channels</button>
                     <h1>{channel.name}</h1>
                     <ul>
@@ -201,50 +248,51 @@
                     );
                 })}
                     </ul>
-                    {/* Form to enter message a new message*/}
-                    <form onSubmit={sendMessage} style={{gap: "10px", marginLeft: "85px" }}>
-                        
-                        <div>
-                            <label>Your Name:</label>
-                            <input  
-                                type="text"
-                                className="input-field"
-                                value={newSender}
-                                onChange={(e) => setNewSender(e.target.value)}
-                                placeholder="Enter your name..."
-                                required
-                                
-                            />
-                        </div>
-                        <div>
-                            <label>Message:</label>
-                            <input 
-                                type="text" 
-                                className="input-field"
-                                value={newMessage} 
-                                onChange={(e) => setNewMessage(e.target.value)} 
-                                placeholder="Type a message..." 
-                                required
-                                
-                            />
-                        </div>
-                        <button type="submit" className="button" >Send</button>
-
-                        {console.log("First Message:", messages[0])}
-                        {messages && messages[0] && messages[0].extra === "affirmation" && (
+                    <div style={{ display: "flex", flexDirection:"row" }}>
+                        {/* Form to enter message a new message*/}
+                        <form onSubmit={sendMessage} style={{gap: "10px", marginLeft: "85px", marginRight: "85px"}}>
+                            
                             <div>
-                                {/* Affirmation Button */}
-                                <button type="button" className="button" onClick={generateAffirmation}>✨ Get Affirmation</button>
-
-                                {/* Display generated affirmation */}
-                                {affirmation && (
-                                    <p style={{ marginTop: "10px", fontStyle: "italic", display: "flex", flexDirection: "row" }}>
-                                        🌟 {affirmation}
-                                    </p>
-                                )}
+                                <label>Your Name:</label>
+                                <input  
+                                    type="text"
+                                    className="input-field"
+                                    value={newSender}
+                                    onChange={(e) => setNewSender(e.target.value)}
+                                    placeholder="Enter your name..."
+                                    required
+                                    
+                                />
                             </div>
-                        )}
-                        </form>
+                            <div>
+                                <label>Message:</label>
+                                <input 
+                                    type="text" 
+                                    className="input-field"
+                                    value={newMessage} 
+                                    onChange={(e) => setNewMessage(e.target.value)} 
+                                    placeholder="Type a message..." 
+                                    required
+                                    
+                                />
+                            </div>
+                            <button type="submit" className="button" >Send</button> 
+                            </form>
+                            
+                            {messages && messages[messages.length - 1] && messages[messages.length - 1].extra === "affirmation" && (
+                                <div style={{ marginTop: "24px" }}>
+                                    {/* Affirmation Button */}
+                                    <button type="button" className="button" onClick={generateAffirmation}>✨ Get Affirmation</button>
+
+                                    {/* Display generated affirmation */}
+                                    {affirmation && (
+                                        <p className="message-container" style={{ marginTop: "10px", fontStyle: "italic"}}>
+                                            🌟 {affirmation}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                            </div>
                 </div>
             );
         }
