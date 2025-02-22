@@ -31,8 +31,7 @@ HUB_URL = 'http://vm146.rz.uni-osnabrueck.de/hub'
 HUB_AUTHKEY = 'Crr-K24d-2N'
 CHANNEL_AUTHKEY = '0987654321'
 CHANNEL_NAME = "Daily Gratitude"
-CHANNEL_ENDPOINT = "http://localhost:5001" # don't forget to adjust in the bottom of the file
-
+CHANNEL_ENDPOINT = "http://vm322.rz.uni-osnabrueck.de/u020/Chat_Cleint_homework/channel.wsgi/" # don't forget to adjust in the bottom of the file
 CHANNEL_FILE = 'messages.json'
 CHANNEL_TYPE_OF_SERVICE = 'aiweb24:chat'
 
@@ -234,5 +233,5 @@ def save_messages(messages):
 # run flask --app channel.py register
 # to register channel with hub
 
-if __name__ == '__main__':
-    app.run(port=5001, debug=True)
+# if __name__ == '__main__':
+#     app.run(port=5001, debug=True)
