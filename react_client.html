@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>React Chat Client</title>
+   
+    <style>
+        
+        /* Set up a flex container for the body */
+        body {
+        display: flex;
+        flex-direction: column;
+        }
+
+        /* Message Container */
+        .message-container {
+            width: 75%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* Input Fields */
+        .input-field {
+            width: 20%;
+            font-size: 14px;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 10px 20px;
+            background-color: #0D8ABC;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 20%;
+        }
+
+
+    </style>
+
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js"></script>
+
+    <script type="text/babel">
+
+        const HUB_URL = "http://vm146.rz.uni-osnabrueck.de/hub";
+        const HUB_AUTHKEY = "Crr-K24d-2N"; // Replace with your actual key
+
+        function ChannelList({ onSelect }) {
+            const [channels, setChannels] = React.useState([]);
+
+            React.useEffect(() => {
+                fetch(HUB_URL + "/channels", {
+                    headers: { "Authorization": "authkey " + HUB_AUTHKEY }
+                })
+                .then(response => response.json())
+                .then(data => setChannels(data.channels))
+                .catch(error => console.error("Error fetching channels:", error));
+            }, []);
+
+            return (
+                <div>
+                    <h2>Channel List</h2>
+                    <ul>
+                        {channels.map(channel => (
+                            <div key={channel.id}>
+                                <a href="#" onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    onSelect(channel);
+                                }}>
+                                    {channel.name} (Type: {channel.type_of_service})
+                                </a>
+                            </div>
+                        ))}
+
+                    </ul>
+                </div>
+            );
+        }
+
+
+        function Chat({ channel, onBack }) {
+            const [messages, setMessages] = React.useState([]);
+            const [newMessage, setNewMessage] = React.useState("");
+            const [sender, setSender] = React.useState([]);
+            const [newSender, setNewSender] = React.useState("");
+
+            // fetch messages from the channel
+            React.useEffect(() => {
+                fetch(channel.endpoint, {
+                    headers: { "Authorization": "authkey " + channel.authkey }
+                })
+                .then(response => response.json())
+                .then(data => setMessages(data))
+                .catch(error => console.error("Error fetching messages:", error));
+            }, [channel]);
+
+            // send messages to the channel in corresponding format
+            function sendMessage(event) {
+                event.preventDefault();
+                if (!newMessage.trim()) return;
+
+                const messageData = {
+                    content: newMessage,
+                    sender: newSender,
+                    timestamp: new Date().toISOString()
+                };
+
+                fetch(channel.endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "authkey " + channel.authkey
+                    },
+                    body: JSON.stringify(messageData)
+                })
+                .then(() => {
+                    setNewMessage("");
+                    setNewSender("");
+                    return fetch(channel.endpoint, { headers: { "Authorization": "authkey " + channel.authkey } });
+                })
+                .then(response => response.json())
+                .then(data => setMessages(data))
+                .then(data => setSender(data))
+                .catch(error => console.error("Error sending message:", error));
+            }
+
+            return (
+                <div>
+                    <button className="button" style={{height:"26px", fontSize:"12px"}} onClick={onBack}>⬅ Back to Channels</button>
+                    <h1>{channel.name}</h1>
+                    <ul>
+                        {messages.map((msg, index) => {
+                            const profilePic = getProfilePicture(msg.sender); // Dynamically generate the URL for each sender given their username
+
+                    return (
+                        <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                            {/* Renders the profile picture */}
+                            <img 
+                                src={profilePic} 
+                                alt="Avatar" 
+                                width="35" 
+                                height="35" 
+                                style={{ borderRadius: "50%", marginRight: "10px" }}
+                                onError={(e) => console.error("Image failed to load:", e.target.src)}
+                            />
+
+                            {/*Displays the sender and message content of previous messages */}
+                            <div className = "message-container">
+                                <h2>{msg.sender}:</h2>
+                                <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.content)) }}></p>
+                                <p style={{ fontSize: "60%" }}><i>({msg.timestamp})</i></p>
+
+                                {/* Check if the message contains the "affirmation" extra field */}
+                                {msg.extra && msg.extra.includes("affirmation") && (
+                                    <button 
+                                        onClick={generateAffirmation}
+                                        style={{ marginTop: "10px", padding: "5px 10px", fontSize: "14px", backgroundColor: "#4CAF50", color: "white", borderRadius: "5px", cursor: "pointer" }}
+                                    >
+                                        ✨ Get an Affirmation
+                                    </button>
+                                )}
+
+                                {/* Show generated affirmation */}
+                                {affirmation && (
+                                    <p style={{ marginTop: "10px", fontStyle: "italic", color: "#2c3e50" }}>
+                                        {affirmation}
+                                    </p>
+                                )}
+                            </div>
+
+
+                        </div>
+                    );
+                })}
+                    </ul>
+                    {/* Form to enter message a new message*/}
+                    <form onSubmit={sendMessage} style={{gap: "10px", marginLeft: "85px" }}>
+                        
+                        <div>
+                            <label>Your Name:</label>
+                            <input  
+                                type="text"
+                                className="input-field"
+                                value={newSender}
+                                onChange={(e) => setNewSender(e.target.value)}
+                                placeholder="Enter your name..."
+                                required
+                                
+                            />
+                        </div>
+                        <div>
+                            <label>Message:</label>
+                            <input 
+                                type="text" 
+                                className="input-field"
+                                value={newMessage} 
+                                onChange={(e) => setNewMessage(e.target.value)} 
+                                placeholder="Type a message..." 
+                                required
+                                
+                            />
+                        </div>
+                        <button type="submit" className="button" >Send</button>
+                    </form>
+                </div>
+            );
+        }
+
+    // #region main function
+        // Function that shows the channels and calls the chat component when a channel is selected
+        function Show() {
+            const [selectedChannel, setSelectedChannel] = React.useState(null);
+
+            return (
+                <div>
+                    {selectedChannel ? (
+                        <Chat channel={selectedChannel} onBack={() => setSelectedChannel(null)} />
+                    ) : (
+                        <ChannelList onSelect={setSelectedChannel} />                        
+                    )}
+                    <BackToTopButton />
+                </div>
+            );
+        }
+        //#region extra functionalities     
+        function getProfilePicture(username) {
+            const url = `https://ui-avatars.com/api/?name=${encodeURIComponent(username || "Unknown")}&background=0D8ABC&color=fff`;
+            console.log("Generated Avatar URL:", url); // 🔍 Debugging log
+            return url;
+        }
+
+        // Function to generate an affirmation from the Affirmations API
+        function generateAffirmation() {
+            fetch("https://www.affirmations.dev/")
+                .then(response => response.json())
+                .then(data => setAffirmation(data.affirmation))
+                .catch(error => console.error("Error fetching affirmation:", error));
+        }
+
+
+        function BackToTopButton() {
+            // State to track whether the user has scrolled down
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+                // Show the button when the user scrolls down a little
+                const handleScroll = () => {
+                    if (window.scrollY > 100) {
+                        setIsVisible(true);  
+                    } else {
+                        setIsVisible(false); 
+                    }
+                };
+                window.addEventListener("scroll", handleScroll);
+                // Cleanup the event listener on unmount
+                return () => {
+                    window.removeEventListener("scroll", handleScroll);
+                };
+            }, []);
+
+            // Scroll the page back to the top
+            const scrollToTop = () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"  // Smooth scrolling
+                });
+            };
+            
+            if (!isVisible) {
+                return null;  // Don't render the button if it's not visible
+            }
+
+            return (
+                <button
+                    onClick={scrollToTop}
+                    className="button"
+                    style={{
+                        position: "fixed",
+                        bottom: "20px",
+                        right: "20px",
+                        borderRadius: "50%",  
+                        width : "40px",
+                         height: "40px", 
+                        transition: "opacity 0.3s",
+                        opacity: isVisible ? 1 : 0,
+                    }}
+                >
+                    ↑
+                </button>
+            );
+        }
+
+        function affirmationPrompt() {
+            const [affirmation, setAffirmation] = React.useState("");
+            const [showAffirmation, setShowAffirmation] = React.useState(false);
+
+        }
+    // #endregion 
+
+
+
+        ReactDOM.render(<Show />, document.getElementById('root'));
+    </script>
+</body>
+</html>
