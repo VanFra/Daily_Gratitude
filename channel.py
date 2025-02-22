@@ -31,8 +31,8 @@ HUB_URL = 'http://vm146.rz.uni-osnabrueck.de/hub'
 HUB_AUTHKEY = 'Crr-K24d-2N'
 CHANNEL_AUTHKEY = '0987654321'
 CHANNEL_NAME = "Daily Gratitude"
-CHANNEL_ENDPOINT = "http://vm322.rz.uni-osnabrueck.de/u020/Chat_Client_homework/Daily_Gratitude/channel.wsgi/" # don't forget to adjust in the bottom of the file
-CHANNEL_FILE = 'messages.json'
+CHANNEL_ENDPOINT = "http://vm322.rz.uni-osnabrueck.de/u020/public_html/Chat_Client_homework/Daily_Gratitude/channel.wsgi/" # don't forget to adjust in the bottom of the file
+CHANNEL_FILE = 'messages.json' 
 CHANNEL_TYPE_OF_SERVICE = 'aiweb24:chat'
 
 INITIAL_MESSAGE = {
